@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>심플 할 일 관리 앱</title>
+    <style>
+        /* 화면을 가득 채우는 은은한 파스텔 톤 배경 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f6f8fa;
+            /* 부담스럽지 않은 은은한 별/하트 배경 패턴 효과 */
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 223, 133, 0.15) 2px, transparent 10px),
+                radial-gradient(circle at 75% 15%, rgba(255, 182, 193, 0.2) 3px, transparent 12px),
+                radial-gradient(circle at 85% 70%, rgba(255, 223, 133, 0.15) 2px, transparent 10px),
+                radial-gradient(circle at 15% 80%, rgba(255, 182, 193, 0.2) 3px, transparent 12px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        /* 여백을 살짝 줄여 자연스럽게 밀착된 카드 */
+        .todo-container {
+            background-color: #ffffff;
+            padding: 22px 20px; /* 기존보다 위아래, 좌우 여백을 줄임 */
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 400px; /* 카드가 너무 퍼지지 않게 최적화 */
+            box-sizing: border-box;
+            border: 1px solid rgba(0, 0, 0, 0.02);
+        }
+
+        /* 앱 제목 + 귀여운 별 포인트 */
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 6px;
+            color: #2c3e50;
+            font-size: 21px;
+            letter-spacing: -0.5px;
+        }
+        h1::before { content: "⭐ "; font-size: 16px; vertical-align: middle; }
+        h1::after { content: " ⭐"; font-size: 16px; vertical-align: middle; }
+
+        /* 안내 문구 */
+        .subtitle {
+            text-align: center;
+            color: #8a99a8;
+            font-size: 13px;
+            margin-bottom: 18px;
+        }
+
+        /* 입력창과 버튼 배치 (여백 최적화) */
+        .input-group {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #ffb6c1; /* 은은한 핑크빛 포커스 */
+        }
+
+        /* 하트가 들어간 추가 버튼 */
+        button.add-btn {
+            background-color: #ffb6c1; /* 부드러운 하트 핑크 색상 */
+            color: white;
+            border: none;
+            padding: 0 16px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button.add-btn:hover {
+            background-color: #ffa4b2;
+        }
+
+        /* 할 일 목록 (여백 다듬기) */
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background-color: #fdfdfd;
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.01);
+            transition: all 0.25s ease;
+        }
+
+        /* 목록 앞에 들어가는 기본 하트 아이콘 역할 */
+        li::before {
+            content: "🤍";
+            font-size: 12px;
+            margin-right: 8px;
+            color: #ccc;
+            transition: transform 0.2s;
+        }
+
+        .todo-text {
+            flex: 1;
+            cursor: pointer;
+            word-break: break-all;
+            margin-right: 8px;
+            font-size: 15px;
+        }
+
+        /* 완료된 할 일 스타일 (취소선, 붉은빛 도는 연한 배경, 채워진 하트) */
+        li.completed {
+            background-color: #fff0f2;
+            border-color: #ffe0e5;
+        }
+        li.completed::before {
+            content: "💖"; /* 완료되면 꽉 찬 하트로 변경 */
+            transform: scale(1.1);
+        }
+        li.completed .todo-text {
+            text-decoration: line-through;
+            color: #bcaaa4;
+        }
+
+        /* 삭제 버튼 스타일 */
+        button.delete-btn {
+            background-color: #f1f3f5;
+            color: #868e96;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        button.delete-btn:hover {
+            background-color: #ffe3e3;
+            color: #e03131;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="todo-container">
+        <h1>오늘의 할 일</h1>
+        <div class="subtitle">할 일을 터치하면 💖 완료 표시가 돼요!</div>
+        
+        <div class="input-group">
+            <input type="text" id="todo-input" placeholder="여기에 할 일을 적어주세요..." autocomplete="off">
+            <button class="add-btn" id="add-button">추가 💕</button>
+        </div>
+
+        <ul id="todo-list">
+            </ul>
+    </div>
+
+    <script>
+        const todoInput = document.getElementById('todo-input');
+        const addButton = document.getElementById('add-button');
+        const todoList = document.getElementById('todo-list');
+
+        function addTodo() {
+            const todoText = todoInput.value.trim();
+
+            if (todoText === '') {
+                alert('빈칸은 추가할 수 없어요! 💡');
+                return;
+            }
+
+            const li = document.createElement('li');
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'todo-text';
+            textSpan.textContent = todoText;
+            
+            // 완료 토글 이벤트
+            textSpan.addEventListener('click', function() {
+                li.classList.toggle('completed');
+            });
+
+            // 삭제 버튼 이벤트
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.textContent = '삭제';
+            deleteBtn.addEventListener('click', function() {
+                todoList.removeChild(li);
+            });
+
+            li.appendChild(textSpan);
+            li.appendChild(deleteBtn);
+            todoList.appendChild(li);
+
+            todoInput.value = '';
+            todoInput.focus();
+        }
+
+        addButton.addEventListener('click', addTodo);
+
+        todoInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addTodo();
+            }
+        });
+    </script>
+</body>
+</html>
